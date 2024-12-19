@@ -1,0 +1,133 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: serviceconfigurations.config.example.com
+spec:
+  group: config.example.com
+  names:
+    kind: ServiceConfiguration
+    listKind: ServiceConfigurationList
+    plural: serviceconfigurations
+    singular: serviceconfiguration
+    shortNames:
+      - svcfg
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required:
+            - spec
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              required:
+                - organization
+                - product
+                - version
+                - serviceName
+                - configName
+                - config
+              properties:
+                organization:
+                  type: string
+                  description: "Organization name"
+                product:
+                  type: string
+                  description: "Product name"
+                version:
+                  type: string
+                  description: "Version of the configuration"
+                serviceName:
+                  type: string
+                  description: "Name of the service"
+                configName:
+                  type: string
+                  description: "Name of this configuration"
+                config:
+                  type: object
+                  required:
+                    - deployment
+                    - captures
+                    - batchSize
+                    - destinations
+                  properties:
+                    deployment:
+                      type: string
+                      description: "Deployment name"
+                    captures:
+                      type: array
+                      description: "List of capture configurations"
+                      items:
+                        type: object
+                        required:
+                          - interface
+                          - filter
+                          - imsi
+                          - snaplen
+                        properties:
+                          interface:
+                            type: string
+                            description: "Network interface name"
+                          filter:
+                            type: string
+                            description: "Capture filter expression"
+                          imsi:
+                            type: string
+                            description: "IMSI identifier"
+                          snaplen:
+                            type: integer
+                            description: "Snapshot length in bytes"
+                            minimum: 0
+                    batchSize:
+                      type: integer
+                      description: "Batch size for packet processing"
+                      minimum: 1
+                    destinations:
+                      type: array
+                      description: "List of destination configurations"
+                      items:
+                        type: object
+                        required:
+                          - path_prefix
+                          - rotate
+                          - max_packets
+                          - compress
+                        properties:
+                          path_prefix:
+                            type: string
+                            description: "Path prefix for saving captures"
+                          rotate:
+                            type: boolean
+                            description: "Enable file rotation"
+                          max_packets:
+                            type: integer
+                            description: "Maximum number of packets per file"
+                            minimum: 0
+                          compress:
+                            type: boolean
+                            description: "Enable compression"
+      additionalPrinterColumns:
+        - name: Service
+          type: string
+          jsonPath: .spec.serviceName
+        - name: Config
+          type: string
+          jsonPath: .spec.configName
+        - name: Deployment
+          type: string
+          jsonPath: .spec.config.deployment
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      subresources:
+        status: {}
